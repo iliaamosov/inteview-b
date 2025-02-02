@@ -1,0 +1,36 @@
+---
+- name: Проверить текущий C-state
+  command: cat /sys/module/intel_idle/parameters/max_cstate
+  register: current_cstate
+  changed_when: false
+
+- name: Отключить C-state (установить max_cstate = 0)
+  command: echo 0 | sudo tee /sys/module/intel_idle/parameters/max_cstate
+  when: current_cstate.stdout | int > 0
+
+- name: Проверить, включено ли энергосбережение на ядрах
+  shell: "cat /sys/devices/system/cpu/cpu*/cpuidle/state*/disable"
+  register: cstate_disable_status
+  changed_when: false
+
+- name: Отключить C-state на всех ядрах
+  shell: "echo 1 | sudo tee /sys/devices/system/cpu/cpu*/cpuidle/state*/disable"
+  when: "'0' in cstate_disable_status.stdout_lines"
+
+- name: Проверить, доступен ли cpufreq 
+  stat:
+    path: /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+  register: cpufreq_check
+
+- name: Переключить CPU в перфоманс режим (если cpufreq доступен)
+  shell: "echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+  when: cpufreq_check.stat.exists
+
+- name: Проверить, используется ли intel_pstate
+  stat:
+    path: /sys/devices/system/cpu/intel_pstate/status
+  register: intel_pstate_check
+
+- name: Установить максимальную производительность через intel_pstate (если доступно)
+  shell: "echo performance | sudo tee /sys/devices/system/cpu/intel_pstate/max_perf_pct"
+  when: intel_pstate_check.stat.exists

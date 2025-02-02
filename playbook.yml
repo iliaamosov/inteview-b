@@ -1,0 +1,26 @@
+---
+- name: Настройка сети
+  hosts: servers
+  become: yes
+  roles:
+    - { role: network_config, tags: network }  # Настройка сети
+
+- name: Изменение параметров цпу
+  hosts: servers
+  become: yes
+  roles:
+    - { role: cpu_update, tags: cpu }  # Отключение C-state, перевод в performance mode
+
+- name: Шифрование диска
+  hosts: servers
+  become: yes
+  vars:
+    disk_name: "xvdf"  # Указать диск, который нужно зашифровать (+ указать в роли, в defaults)
+  roles:
+    - { role: disk_encryption, tags: disk_encryption }  # Шифрование второго диска
+
+- name: Получение информации о цпу
+  hosts: servers
+  become: yes
+  roles:
+    - { role: cpu_info, tags: cpu_info }  # Получение информации о процессорах 

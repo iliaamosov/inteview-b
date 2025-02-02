@@ -1,0 +1,35 @@
+---
+- name: Получить список активных сетевых интерфейсов
+  shell: "ip -o link show | awk -F': ' '$2 !~ /^lo$/ {print $2}' | cut -d' ' -f1"
+  register: net_interfaces
+  changed_when: false
+  check_mode: no
+
+- name: Вывести найденные сетевые интерфейсы
+  debug:
+    var: net_interfaces.stdout_lines
+
+- name: Завершить выполнение, если нет активных интерфейсов
+  fail:
+    msg: "Ошибка: не найдены активные сетевые интерфейсы"
+  when: net_interfaces.stdout_lines | length == 0
+
+- name: Переименовать первый найденный интерфейс в net0
+  command: ip link set {{ net_interfaces.stdout_lines[0] }} name net0
+  when: net_interfaces.stdout_lines[0] != "net0"
+
+- name: Включить интерфейс net0
+  command: ip link set net0 up
+
+- name: Проверить, поднят ли интерфейс net0 после переименования
+  shell: "ip a show net0 | grep 'state UP' || ip link set net0 up"
+  changed_when: false
+
+- name: Показать информацию о переименованном интерфейсе
+  command: ip a show net0
+  register: net0_info
+  changed_when: false
+
+- name: Вывести детали интерфейса net0
+  debug:
+    msg: "{{ net0_info.stdout_lines }}"

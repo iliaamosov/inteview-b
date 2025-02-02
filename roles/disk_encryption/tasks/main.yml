@@ -1,0 +1,98 @@
+---
+- name: Установить cryptsetup
+  apt:
+    name: cryptsetup
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Проверить установку cryptsetup
+  command: cryptsetup --version
+  register: cryptsetup_installed
+  ignore_errors: yes
+  become: yes
+
+- name: Вывести версию Cryptsetup
+  debug:
+    msg: "Установлена версия cryptsetup: {{ cryptsetup_installed.stdout }}"
+  when: cryptsetup_installed.rc == 0
+
+- name: Получить информацию о дисках перед шифрованием
+  command: lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+  register: disk_info
+  changed_when: false
+  become: yes
+
+- name: Вывести информацию о дисках перед шифрованием
+  debug:
+    var: disk_info.stdout_lines
+
+- name: Очистить диск перед шифрованием 
+  command: "sudo dd if=/dev/zero of=/dev/{{ disk_name }} bs=1M count=10"
+  when: disk_name is defined
+  become: yes
+  ignore_errors: yes
+
+- name: Проверить, зашифрован ли диск 
+  command: "cryptsetup isLuks /dev/{{ disk_name }}"
+  register: luks_check
+  ignore_errors: yes
+  become: yes
+
+- name: Вывести результат проверки LUKS
+  debug:
+    msg: "Результат проверки LUKS для /dev/{{ disk_name }}: {{ luks_check.rc }}"
+
+- name: Создать временный файл с паролем для шифрования
+  copy:
+    dest: "/tmp/luks_keyfile"
+    content: "changeit"
+    mode: "0600"
+  become: yes
+  when: luks_check.rc != 0
+
+- name: Подготовить второй диск (если не зашифрован)
+  command: "cryptsetup luksFormat /dev/{{ disk_name }} --batch-mode --key-file /tmp/luks_keyfile"
+  when: disk_name is defined and luks_check.rc != 0
+  become: yes
+
+- name: Открыть зашифрованный диск
+  command: "cryptsetup luksOpen /dev/{{ disk_name }} {{ disk_name }}_encrypted --key-file /tmp/luks_keyfile"
+  when: disk_name is defined
+  become: yes
+
+- name: Форматировать зашифрованный диск
+  command: "mkfs.ext4 /dev/mapper/{{ disk_name }}_encrypted"
+  when: disk_name is defined
+  become: yes
+
+- name: Создать точку монтирования, если её нет
+  file:
+    path: /mnt/data
+    state: directory
+  become: yes
+
+- name: Монтировать зашифрованный диск
+  mount:
+    path: /mnt/data
+    src: "/dev/mapper/{{ disk_name }}_encrypted"
+    fstype: ext4
+    state: mounted
+  become: yes
+
+- name: Вывести информацию о дисках после шифрования
+  command: lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
+  register: disk_info_after
+  changed_when: false
+  become: yes
+
+- name: Вывести информацию о дисках после шифрования
+  debug:
+    var: disk_info_after.stdout_lines
+
+
+# - name: Удалить временный файл с паролем после шифрования
+#   file:
+#     path: "/tmp/luks_keyfile"
+#     state: absent
+#   become: yes

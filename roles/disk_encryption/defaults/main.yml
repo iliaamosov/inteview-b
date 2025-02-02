@@ -1,0 +1,4 @@
+---
+# Указываем диск для шифрования и точку монтирования
+disk_to_encrypt: "/dev/xvdf"
+mount_point: "/mnt/encrypted"

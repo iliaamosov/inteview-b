@@ -1,0 +1,33 @@
+---
+- name: Запуск утилиты lscpu
+  command: lscpu
+  register: cpu_info
+  changed_when: false
+
+- name: Вывод команды lscpu
+  debug:
+    var: cpu_info.stdout
+
+- name: Сохранение вывода  lscpu в файл на сервере
+  shell: "echo '{{ cpu_info.stdout }}' > /home/ubuntu/cpu_info.txt"
+  changed_when: false
+
+- name: Проверка, что файл создан
+  command: "ls -l /home/ubuntu/cpu_info.txt"
+  register: check_file
+  changed_when: false
+  ignore_errors: yes
+
+- name: Вывод проверки файла
+  debug:
+    var: check_file.stdout_lines
+
+- name: Скачивание файла с информацией о процессоре на хост
+  fetch:
+    src: "/home/ubuntu/cpu_info.txt"
+    dest: "/mnt/c/Users/amosov_i_a/Desktop/ansible-bhft/roles/cpu_info/cpu_info.txt"
+    flat: yes
+
+- name: Проверка, что файл скачан
+  debug:
+    msg: "Файл с информацией о процессоре скачан в /mnt/c/Users/amosov_i_a/Desktop/ansible-bhft/roles/cpu_info/cpu_info.txt"
