@@ -5,12 +5,13 @@
 Шифрование диска – настройка LUKS-шифрования для второго диска
 Сбор информации о процессоре – выполнение lscpu и сохранение данных на локальной машине
 
+# Структура проекта
 
-```. ├── README.md ├── github ├── github.pub ├── inventory │ └── hosts.ini ├── playbook.yml ├── roles │ ├── cpu_info │ │ ├── README.MD │ │ ├── cpu_info.txt │ │ └── main.yml │ ├── cpu_update │ │ ├── README.md │ │ └── tasks │ ├── disk_encryption │ │ ├── README.md │ │ ├── defaults │ │ └── tasks │ └── network_config │ ├── README.md │ └── tasks └── tree.txt```
+```
 
+. ├── README.md ├── github ├── github.pub ├── inventory │ └── hosts.ini ├── playbook.yml ├── roles │ ├── cpu_info │ │ ├── README.MD │ │ ├── cpu_info.txt │ │ └── main.yml │ ├── cpu_update │ │ ├── README.md │ │ └── tasks │ ├── disk_encryption │ │ ├── README.md │ │ ├── defaults │ │ └── tasks │ └── network_config │ ├── README.md │ └── tasks └── tree.txt
 
-
-
+```
 
 
 
