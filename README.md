@@ -6,8 +6,7 @@
 Сбор информации о процессоре – выполнение lscpu и сохранение данных на локальной машине
 
 
-ansible-bhft/ │── inventory/ │ └── hosts.ini │── playbook.yml │── roles/ │ ├── cpu_info/ │ ├── cpu_update/ │ ├── disk_encryption/ │ ├── network_config/ │── README.md
-
+'''. ├── README.md ├── github ├── github.pub ├── inventory │ └── hosts.ini ├── playbook.yml ├── roles │ ├── cpu_info │ │ ├── README.MD │ │ ├── cpu_info.txt │ │ └── main.yml │ ├── cpu_update │ │ ├── README.md │ │ └── tasks │ ├── disk_encryption │ │ ├── README.md │ │ ├── defaults │ │ └── tasks │ └── network_config │ ├── README.md │ └── tasks └── tree.txt'''
 
 
 
